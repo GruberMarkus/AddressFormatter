@@ -6,8 +6,8 @@ Works cross-platform: PowerShell 5.1 on Windows, PowerShell (pwsh) 7+ on Windows
 Based on Perl implementation https://metacpan.org/dist/Geo-Address-Formatter.
 
 # Usage
-1. Import module
-   Import-Module 'c:\your_modules_path\AddressFormatter\AddressFormatter.psd1'
+1. Import module  
+   `Import-Module 'c:\your_modules_path\AddressFormatter\AddressFormatter.psd1'`
 2. Format address using `Format-PostalAddress`
    ```powershell
    $FormatPostAddressOptions = @{
@@ -41,7 +41,7 @@ Based on Perl implementation https://metacpan.org/dist/Geo-Address-Formatter.
    ```
 
 # Usage examples
-In the following two examples, note the subtle differences in formatting, such as where the house number and the postcode is placed.
+Note the subtle country specific formatting differences in the following examples, such as where the house number and the postcode is placed.
 
 ## Austrian Presidential Office
 ```powershell
