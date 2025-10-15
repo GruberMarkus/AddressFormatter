@@ -13,7 +13,7 @@ Write-Host 'Running test cases...'
 
 foreach ($TestCaseFile in
     @(
-        Get-ChildItem (Join-Path $PSScriptRoot 'testcases') -Include '*.yaml' -File -Recurse
+        Get-ChildItem (Join-Path $PSScriptRoot '..\address-formatting\testcases') -Include '*.yaml' -File -Recurse
     )
 ) {
     $TestCaseFilesCount++

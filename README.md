@@ -106,7 +106,9 @@ Note that the country name 'USA' has been automatically corrected to 'United Sta
 
 # Admin tasks
 ## Update address templates and test cases
-Run `.\update\update.ps1` to download the latest configuration files and test cases. After this, the module needs to be reloaded to use the new files.
+Address templates and test cases are stored in the folder '`.\AddressFormatter\address-formatting`'. This folder is a git submodule, which is basically a clone of the repository '`https://github.com/OpenCageData/address-formatting`'.
+
+To update the templates and test cases, run '`git submodule update`'.
 
 ## Run tests
 Run `.\tests\tests.ps1` to run the tests. Only errors and a summary will be logged.
