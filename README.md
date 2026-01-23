@@ -106,7 +106,7 @@ Note that the country name 'USA' has been automatically corrected to 'United Sta
 
 # Admin tasks
 ## Update address templates and test cases
-Address templates and test cases are stored in the folder '`.\AddressFormatter\address-formatting`'. This folder is a git submodule, which is basically a clone of the repository '`https://github.com/OpenCageData/address-formatting`'.
+Address templates and test cases are stored in the folder '`subModules\OpenCageData\address-formatting`'. This folder is a git submodule, which is basically a clone of the repository '`https://github.com/OpenCageData/address-formatting`'.
 
 To update the templates and test cases, run '`git submodule update`'.
 
@@ -119,6 +119,6 @@ Import module AddressFormatter
 Import module powershell-yaml
 Running test cases...
 462 test cases from 256 files completed.
-  Passed: 462/462 (100,00%)
-  Failed: 0/462 (0,00%)
+  Passed: 464/464 (100,00%)
+  Failed: 0/464 (0,00%)
 ```
