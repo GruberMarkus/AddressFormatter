@@ -115,10 +115,21 @@ Run `.\tests\tests.ps1` to run the tests. Only errors and a summary will be logg
 
 Example output:
 ```
-Import module AddressFormatter
-Import module powershell-yaml
-Running test cases...
-462 test cases from 256 files completed.
-  Passed: 464/464 (100,00%)
-  Failed: 0/464 (0,00%)
+Start script @2026-03-06T15:17:40+01:00@
+
+Import modules
+  AddressFormatter
+  powershell-yaml
+
+Submodule opencagedata/address-formatting
+  Commit 064d82b, dated 2026-02-03T17:32:05+01:00
+
+Running test cases
+  465 test cases from 256 files
+
+Test results
+  Passed: 465/465 (100,00 %)
+  Failed: 0/465 (0,00 %)
+
+End script @2026-03-06T15:17:50+01:00@
 ```
