@@ -121,7 +121,7 @@ Import modules
   AddressFormatter
   powershell-yaml
 
-Submodule opencagedata/address-formatting
+Submodule OpenCageData/address-formatting
   Commit 064d82b, dated 2026-02-03T17:32:05+01:00
 
 Running test cases

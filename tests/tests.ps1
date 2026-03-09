@@ -8,7 +8,7 @@ Import-Module (Split-Path $PSScriptRoot)
 Write-Host '  powershell-yaml'
 Import-Module (Join-Path $PSScriptRoot '..\nestedModules\powershell-yaml')
 
-$submoduleID = 'subModules/opencagedata/address-formatting'
+$submoduleID = 'subModules/OpenCageData/address-formatting'
 $gitModulesFile = Join-Path $PSScriptRoot '..\.gitmodules'
 
 # Query the .gitmodules file directly using git config
@@ -24,7 +24,7 @@ if ($null -ne $relativeModulePath) {
 
 
 Write-Host
-Write-Host 'Submodule opencagedata/address-formatting'
+Write-Host 'Submodule OpenCageData/address-formatting'
 Write-Host "  Commit $($gitInfo.Split('|')[0]), dated $($gitInfo.Split('|')[1])"
 
 
