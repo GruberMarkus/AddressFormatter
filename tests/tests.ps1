@@ -59,7 +59,8 @@ foreach ($TestCaseFile in
             $result = (Format-PostalAddress -Components $TestCase.components)
         }
 
-        $TestCase.expected = $TestCase.expected -replace '\n$', '' # We do not add a trailing newline
+        $TestCase.expected = $TestCase.expected -replace '\r?\n$', ''  # We do not add a trailing newline
+        $TestCase.expected = $TestCase.expected -replace '\r?\n', [System.Environment]::NewLine # Make sure we always use the environment specific newline
 
         if ($result -ne $TestCase.expected) {
             $TestCaseErrorCount++
