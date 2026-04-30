@@ -46,29 +46,29 @@ $utf8 = [System.Text.Encoding]::UTF8
 $parsedFiles = New-Object System.Collections.Generic.List[object]
 foreach ($f in $testFiles) {
     $TestCaseFilesCount++
-    $text  = [System.IO.File]::ReadAllText($f, $utf8)
+    $text = [System.IO.File]::ReadAllText($f, $utf8)
     $cases = @(ConvertFrom-Yaml -Yaml $text -AllDocuments)
     $TestCaseCount += $cases.Count
     $isAbbrev = ([System.IO.Path]::GetFileName([System.IO.Path]::GetDirectoryName($f))) -ieq 'abbreviations'
     $parsedFiles.Add([pscustomobject]@{
-        File     = $f
-        Cases    = $cases
-        IsAbbrev = $isAbbrev
-    })
+            File     = $f
+            Cases    = $cases
+            IsAbbrev = $isAbbrev
+        })
 }
 
 Write-Host "  $TestCaseCount test cases from $TestCaseFilesCount files"
 
 # Pre-compile the two regexes used per test case (compiled once, reused thousands of times)
 $rxTrailingNL = [regex]::new('\r?\n$', [System.Text.RegularExpressions.RegexOptions]::Compiled)
-$rxAnyNL      = [regex]::new('\r?\n',  [System.Text.RegularExpressions.RegexOptions]::Compiled)
-$envNL        = [System.Environment]::NewLine
+$rxAnyNL = [regex]::new('\r?\n', [System.Text.RegularExpressions.RegexOptions]::Compiled)
+$envNL = [System.Environment]::NewLine
 
 # Collect errors in a List instead of growing an array via += (which reallocates each time)
 $errorsList = New-Object System.Collections.Generic.List[string]
 
 foreach ($entry in $parsedFiles) {
-    $file     = $entry.File
+    $file = $entry.File
     $isAbbrev = $entry.IsAbbrev
     foreach ($TestCase in $entry.Cases) {
         if ($isAbbrev) {
@@ -86,7 +86,7 @@ foreach ($entry in $parsedFiles) {
             $errorsList.Add($file)
             $errorsList.Add("  $($TestCase.description)")
             $errorsList.Add('    Expected lines:')
-            foreach ($line in $rxAnyNL.Split($expected))     { $errorsList.Add("      '$line'") }
+            foreach ($line in $rxAnyNL.Split($expected)) { $errorsList.Add("      '$line'") }
             $errorsList.Add('    Returned lines:')
             foreach ($line in $rxAnyNL.Split([string]$result)) { $errorsList.Add("      '$line'") }
         }

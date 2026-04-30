@@ -177,7 +177,7 @@ function Format-PostalAddressInternal {
 
     # 9) Prepare template (replace lambda) and compile to AST (cached)
     $templateText = Replace-TemplateLambdas -TemplateText $templateText
-    $compiledTpl  = Compile-MustacheTemplate -Template $templateText
+    $compiledTpl = Compile-MustacheTemplate -Template $templateText
 
     # 10) Render
     $rendered = Render-CompiledMustache -Nodes $compiledTpl -Context $rh_components
@@ -214,17 +214,17 @@ function Format-PostalAddressInternal {
 
 
 $Script:AddrFmt = @{
-    Templates         = @{}   # country templates + default
-    ComponentAliases  = @{}   # primary -> [aliases]
-    Component2Type    = @{}   # alias -> primary
-    OrderedComponents = @()   # [ primary1, alias1a, alias1b, primary2, ... ]
-    HKnown            = @{}   # set of known component keys
-    State_Codes       = @{}   # country_code -> map
-    County_Codes      = @{}   # country_code -> map
-    Country2Lang      = @{}   # country_code -> "en,de"
-    Abbreviations     = @{}   # lang -> component -> (long -> short)
-    SetDistrictAlias  = @{}   # cache to avoid rework
-    FinalComponents   = $null # set after successful Format-PostalAddress
+    Templates             = @{}   # country templates + default
+    ComponentAliases      = @{}   # primary -> [aliases]
+    Component2Type        = @{}   # alias -> primary
+    OrderedComponents     = @()   # [ primary1, alias1a, alias1b, primary2, ... ]
+    HKnown                = @{}   # set of known component keys
+    State_Codes           = @{}   # country_code -> map
+    County_Codes          = @{}   # country_code -> map
+    Country2Lang          = @{}   # country_code -> "en,de"
+    Abbreviations         = @{}   # lang -> component -> (long -> short)
+    SetDistrictAlias      = @{}   # cache to avoid rework
+    FinalComponents       = $null # set after successful Format-PostalAddress
 
     # Derived caches built once at init (mirror Geo::Address::Formatter):
     State_Codes_Reverse   = @{}   # cc -> { UPPERCASE_NAME -> code }
@@ -233,10 +233,10 @@ $Script:AddrFmt = @{
     County_Codes_Name     = @{}   # cc -> { code -> default_name }
     CompiledAbbreviations = @{}   # lang -> compName -> [ {Re; Short} ]
 
-    ShowWarnings      = $true
-    OnlyAddress       = $false
+    ShowWarnings          = $true
+    OnlyAddress           = $false
 
-    ConfPath          = $null
+    ConfPath              = $null
 }
 
 # Countries where plain "district" should be treated as "neighbourhood" (small district)
@@ -250,47 +250,47 @@ $Script:SmallDistrict = @{
 $Script:RxOpts = [System.Text.RegularExpressions.RegexOptions]::Compiled
 
 # Mustache renderer
-$Script:RxSection         = [regex]::new('(?s){{\#\s*([\w\.\-]+)\s*}}(.*?){{/\s*\1\s*}}', $Script:RxOpts)
+$Script:RxSection = [regex]::new('(?s){{\#\s*([\w\.\-]+)\s*}}(.*?){{/\s*\1\s*}}', $Script:RxOpts)
 $Script:RxInvertedSection = [regex]::new('(?s){{\^\s*([\w\.\-]+)\s*}}(.*?){{/\s*\1\s*}}', $Script:RxOpts)
-$Script:RxTriple          = [regex]::new('(?s){{{\s*([\w\.\-]+)\s*}}}',                  $Script:RxOpts)
-$Script:RxAmp             = [regex]::new('(?s){{&\s*([\w\.\-]+)\s*}}',                   $Script:RxOpts)
-$Script:RxSimple          = [regex]::new('(?s){{\s*([\w\.\-]+)\s*}}',                    $Script:RxOpts)
+$Script:RxTriple = [regex]::new('(?s){{{\s*([\w\.\-]+)\s*}}}', $Script:RxOpts)
+$Script:RxAmp = [regex]::new('(?s){{&\s*([\w\.\-]+)\s*}}', $Script:RxOpts)
+$Script:RxSimple = [regex]::new('(?s){{\s*([\w\.\-]+)\s*}}', $Script:RxOpts)
 
 # Template lambdas
-$Script:RxFirst         = [regex]::new('(?s){{\#first}}(.+?){{\/first}}',     $Script:RxOpts)
-$Script:RxFirstSentinel = [regex]::new('(?s)FIRSTSTART\s*(.+?)\s*FIRSTEND',   $Script:RxOpts)
-$Script:RxSelectFirst   = [regex]::new('\s*(?:\|\||\r?\n)\s*',                $Script:RxOpts)
+$Script:RxFirst = [regex]::new('(?s){{\#first}}(.+?){{\/first}}', $Script:RxOpts)
+$Script:RxFirstSentinel = [regex]::new('(?s)FIRSTSTART\s*(.+?)\s*FIRSTEND', $Script:RxOpts)
+$Script:RxSelectFirst = [regex]::new('\s*(?:\|\||\r?\n)\s*', $Script:RxOpts)
 
 # Generic
-$Script:RxNewline    = [regex]::new('\r?\n', $Script:RxOpts)
-$Script:RxLeadingWS  = [regex]::new('^\s+',  $Script:RxOpts)
-$Script:RxTrailingWS = [regex]::new('\s+$',  $Script:RxOpts)
-$Script:NewlineEnv   = [System.Environment]::NewLine
+$Script:RxNewline = [regex]::new('\r?\n', $Script:RxOpts)
+$Script:RxLeadingWS = [regex]::new('^\s+', $Script:RxOpts)
+$Script:RxTrailingWS = [regex]::new('\s+$', $Script:RxOpts)
+$Script:NewlineEnv = [System.Environment]::NewLine
 
 # Invoke-Postformat
-$Script:RxPF_Dash         = [regex]::new('^- ',        $Script:RxOpts)
-$Script:RxPF_CommaCom     = [regex]::new(',\s*,',      $Script:RxOpts)
-$Script:RxPF_SpcCommaSpc  = [regex]::new('\s+,\s+',    $Script:RxOpts)
-$Script:RxPF_MultiSpace   = [regex]::new('\s\s+',      $Script:RxOpts)
-$Script:RxPF_LeadComma    = [regex]::new('^,',         $Script:RxOpts)
-$Script:RxPF_MultiComma   = [regex]::new(',,+',        $Script:RxOpts)
-$Script:RxPF_TrailComma   = [regex]::new(',$',         $Script:RxOpts)
+$Script:RxPF_Dash = [regex]::new('^- ', $Script:RxOpts)
+$Script:RxPF_CommaCom = [regex]::new(',\s*,', $Script:RxOpts)
+$Script:RxPF_SpcCommaSpc = [regex]::new('\s+,\s+', $Script:RxOpts)
+$Script:RxPF_MultiSpace = [regex]::new('\s\s+', $Script:RxOpts)
+$Script:RxPF_LeadComma = [regex]::new('^,', $Script:RxOpts)
+$Script:RxPF_MultiComma = [regex]::new(',,+', $Script:RxOpts)
+$Script:RxPF_TrailComma = [regex]::new(',$', $Script:RxOpts)
 
 # Invoke-Clean
-$Script:RxCl_LBracket     = [regex]::new('^[\[\{,\s]+',     $Script:RxOpts)
-$Script:RxCl_RBracket     = [regex]::new('[\}\],\s]+$',     $Script:RxOpts)
-$Script:RxCl_LComma       = [regex]::new('^\s*,+\s*',       $Script:RxOpts)
-$Script:RxCl_RComma       = [regex]::new('\s*,+\s*$',       $Script:RxOpts)
-$Script:RxCl_CommaCommas  = [regex]::new(',\s*,+',          $Script:RxOpts)
-$Script:RxCl_CommaSpace   = [regex]::new('\s*,\s*',         $Script:RxOpts)
-$Script:RxCl_MultiSpace   = [regex]::new('\s{2,}',          $Script:RxOpts)
-$Script:RxCl_HtmlApos     = [regex]::new('&#39;',           $Script:RxOpts)
+$Script:RxCl_LBracket = [regex]::new('^[\[\{,\s]+', $Script:RxOpts)
+$Script:RxCl_RBracket = [regex]::new('[\}\],\s]+$', $Script:RxOpts)
+$Script:RxCl_LComma = [regex]::new('^\s*,+\s*', $Script:RxOpts)
+$Script:RxCl_RComma = [regex]::new('\s*,+\s*$', $Script:RxOpts)
+$Script:RxCl_CommaCommas = [regex]::new(',\s*,+', $Script:RxOpts)
+$Script:RxCl_CommaSpace = [regex]::new('\s*,\s*', $Script:RxOpts)
+$Script:RxCl_MultiSpace = [regex]::new('\s{2,}', $Script:RxOpts)
+$Script:RxCl_HtmlApos = [regex]::new('&#39;', $Script:RxOpts)
 
 # Sanity cleaning
-$Script:RxSC_PostcodeSemi = [regex]::new('^\d+;\d+$',          $Script:RxOpts)
-$Script:RxSC_PostcodeFive = [regex]::new('^(\d{5}),\d{5}',     $Script:RxOpts)
-$Script:RxSC_HasWord      = [regex]::new('\w',                 $Script:RxOpts)
-$Script:RxSC_Url          = [regex]::new('(?s)https?://',      $Script:RxOpts)
+$Script:RxSC_PostcodeSemi = [regex]::new('^\d+;\d+$', $Script:RxOpts)
+$Script:RxSC_PostcodeFive = [regex]::new('^(\d{5}),\d{5}', $Script:RxOpts)
+$Script:RxSC_HasWord = [regex]::new('\w', $Script:RxOpts)
+$Script:RxSC_Url = [regex]::new('(?s)https?://', $Script:RxOpts)
 
 # Apply-Replacements compiled regex cache (keyed by pattern string)
 $Script:ApplyRxCache = @{}
@@ -459,11 +459,11 @@ function Initialize-YamlDotNetTypes {
     # Re-enter only when *all* cached type vars are set, so a partially-failed
     # init (e.g. one type missing) doesn't leave a stale half-initialised state.
     if ($null -ne $Script:_YamlScalarT -and `
-        $null -ne $Script:_YamlMapT -and `
-        $null -ne $Script:_YamlSeqT -and `
-        $null -ne $Script:_YamlParserT -and `
-        $null -ne $Script:_YamlMergingParserT -and `
-        $null -ne $Script:_YamlStreamT) { return }
+            $null -ne $Script:_YamlMapT -and `
+            $null -ne $Script:_YamlSeqT -and `
+            $null -ne $Script:_YamlParserT -and `
+            $null -ne $Script:_YamlMergingParserT -and `
+            $null -ne $Script:_YamlStreamT) { return }
 
     $asm = $null
     foreach ($a in [System.AppDomain]::CurrentDomain.GetAssemblies()) {
@@ -476,7 +476,7 @@ function Initialize-YamlDotNetTypes {
             if ($a.GetName().Name -eq 'YamlDotNet') { $asm = $a; break }
         }
     }
-    if (-not $asm) { throw "YamlDotNet assembly not loaded; powershell-yaml import failed." }
+    if (-not $asm) { throw 'YamlDotNet assembly not loaded; powershell-yaml import failed.' }
 
     # Resolve *all* required types into locals first; only commit to Script
     # scope once every lookup succeeds. This way a missing type throws
@@ -545,7 +545,7 @@ function Convert-YamlNodeFast {
             $list.Add((Convert-YamlNodeFast $item))
         }
         # Comma prevents PowerShell from unrolling the list into the pipeline.
-        return ,$list
+        return , $list
     }
 
     return $Node
@@ -731,7 +731,7 @@ function Compile-MustacheTemplate {
                 '#' { $tokens.Add(@('SO', $v.Substring(3, $v.Length - 5).Trim())) }
                 '^' { $tokens.Add(@('IO', $v.Substring(3, $v.Length - 5).Trim())) }
                 '/' { $tokens.Add(@('SC', $v.Substring(3, $v.Length - 5).Trim())) }
-                '&' { $tokens.Add(@('U',  $v.Substring(3, $v.Length - 5).Trim())) }
+                '&' { $tokens.Add(@('U', $v.Substring(3, $v.Length - 5).Trim())) }
                 default {
                     $tokens.Add(@('E', $v.Substring(2, $v.Length - 4).Trim()))
                 }
@@ -791,8 +791,7 @@ function Render-CompiledMustache {
         $type = $n[0]
         if ($type -eq 'L') {
             [void]$Sb.Append([string]$n[1])
-        }
-        elseif ($type -eq 'E') {
+        } elseif ($type -eq 'E') {
             $key = $n[1]
             if ($key.IndexOf('.') -lt 0) {
                 $val = $Context[$key]
@@ -802,8 +801,7 @@ function Render-CompiledMustache {
             if ($null -ne $val) {
                 [void]$Sb.Append((ConvertTo-HtmlEscapedText ([string]$val)))
             }
-        }
-        elseif ($type -eq 'U') {
+        } elseif ($type -eq 'U') {
             $key = $n[1]
             if ($key.IndexOf('.') -lt 0) {
                 $val = $Context[$key]
@@ -811,8 +809,7 @@ function Render-CompiledMustache {
                 $val = Get-ContextValue -Context $Context -KeyPath $key
             }
             if ($null -ne $val) { [void]$Sb.Append([string]$val) }
-        }
-        elseif ($type -eq 'S') {
+        } elseif ($type -eq 'S') {
             $key = $n[1]
             $body = $n[2]
             if ($key.IndexOf('.') -lt 0) {
@@ -836,8 +833,7 @@ function Render-CompiledMustache {
             } elseif (Test-Truthy $val) {
                 Render-CompiledMustache -Nodes $body -Context $Context -Sb $Sb
             }
-        }
-        elseif ($type -eq 'I') {
+        } elseif ($type -eq 'I') {
             $key = $n[1]
             if ($key.IndexOf('.') -lt 0) {
                 $val = $Context[$key]
@@ -917,10 +913,10 @@ function New-AddressFormatter {
     $Script:AddrFmt.Abbreviations = @{}
 
     # Reset derived caches (built by Build-CodeLookups / Compile-AllAbbreviations)
-    $Script:AddrFmt.State_Codes_Reverse  = @{}
-    $Script:AddrFmt.State_Codes_Name     = @{}
+    $Script:AddrFmt.State_Codes_Reverse = @{}
+    $Script:AddrFmt.State_Codes_Name = @{}
     $Script:AddrFmt.County_Codes_Reverse = @{}
-    $Script:AddrFmt.County_Codes_Name    = @{}
+    $Script:AddrFmt.County_Codes_Name = @{}
     $Script:AddrFmt.CompiledAbbreviations = @{}
 
     # components.yaml
@@ -1055,17 +1051,17 @@ function Compile-AllReplacements {
             $compiled = New-Object System.Collections.Generic.List[object]
             foreach ($ra in $tpl['replace']) {
                 if ($null -eq $ra -or $ra.Count -lt 2) { continue }
-                $pattern     = [string]$ra[0]
+                $pattern = [string]$ra[0]
                 $replacement = [string]$ra[1]
 
-                $compName  = $null
+                $compName = $null
                 $exactRest = $null
-                $reKey     = $pattern
+                $reKey = $pattern
 
                 if ($pattern -match '^(\w+)=(.+)$') {
-                    $compName  = $Matches[1]
+                    $compName = $Matches[1]
                     $exactRest = $Matches[2]
-                    $reKey     = $exactRest
+                    $reKey = $exactRest
                 }
 
                 $re = $rxCacheIcase[$reKey]
@@ -1080,11 +1076,11 @@ function Compile-AllReplacements {
                 }
 
                 $compiled.Add(@{
-                    Component   = $compName
-                    ExactMatch  = $exactRest
-                    Re          = $re
-                    Replacement = $replacement
-                })
+                        Component   = $compName
+                        ExactMatch  = $exactRest
+                        Re          = $re
+                        Replacement = $replacement
+                    })
             }
             $tpl['_compiled_replace'] = $compiled
         }
@@ -1094,7 +1090,7 @@ function Compile-AllReplacements {
             $compiled = New-Object System.Collections.Generic.List[object]
             foreach ($ra in $tpl['postformat_replace']) {
                 if ($null -eq $ra -or $ra.Count -lt 2) { continue }
-                $pattern     = [string]$ra[0]
+                $pattern = [string]$ra[0]
                 $replacement = [string]$ra[1]
 
                 $re = $rxCachePlain[$pattern]
@@ -1121,9 +1117,9 @@ function Compile-AllReplacements {
 function Build-CodeLookups {
     foreach ($type in @('State_Codes', 'County_Codes')) {
         $reverseKey = "${type}_Reverse"
-        $nameKey    = "${type}_Name"
+        $nameKey = "${type}_Name"
         $Script:AddrFmt[$reverseKey] = @{}
-        $Script:AddrFmt[$nameKey]    = @{}
+        $Script:AddrFmt[$nameKey] = @{}
 
         $data = $Script:AddrFmt[$type]
         if ($null -eq $data) { continue }
@@ -1131,7 +1127,7 @@ function Build-CodeLookups {
         foreach ($cc in $data.Keys) {
             $mapping = $data[$cc]
             if ($null -eq $mapping) { continue }
-            $rev  = @{}
+            $rev = @{}
             $name = @{}
 
             # mapping might be a hashtable or a PSObject (depending on YAML loader)
@@ -1175,7 +1171,7 @@ function Build-CodeLookups {
                 $rev[([string]$code).ToUpperInvariant()] = $code
             }
             $Script:AddrFmt[$reverseKey][$cc] = $rev
-            $Script:AddrFmt[$nameKey][$cc]    = $name
+            $Script:AddrFmt[$nameKey][$cc] = $name
         }
     }
 }
@@ -1190,7 +1186,7 @@ function Compile-AllAbbreviations {
     # Cache compiled regex by pattern string (same long-form key in multiple
     # components/languages is common).
     $rxCache = @{}
-    $rxOpts  = $Script:RxOpts
+    $rxOpts = $Script:RxOpts
 
     foreach ($lang in $Script:AddrFmt.Abbreviations.Keys) {
         $abbr = $Script:AddrFmt.Abbreviations[$lang]
@@ -1214,7 +1210,7 @@ function Compile-AllAbbreviations {
                 $short = if ($isDict) { $rh_pairs[$long] } else { $rh_pairs.$long }
                 if ($null -eq $short) { continue }
                 $patt = '(^|\s)' + [regex]::Escape([string]$long) + '\b'
-                $re   = $rxCache[$patt]
+                $re = $rxCache[$patt]
                 if ($null -eq $re) {
                     try {
                         $re = [regex]::new($patt, $rxOpts)  # Perl version is case-sensitive here
@@ -1493,7 +1489,7 @@ function Add-Code {
 
     # Pick the right reverse-lookup table (built once at init)
     $reverseAll = if ($KeyName -ieq 'state') { $Script:AddrFmt.State_Codes_Reverse } else { $Script:AddrFmt.County_Codes_Reverse }
-    $namesAll   = if ($KeyName -ieq 'state') { $Script:AddrFmt.State_Codes_Name    } else { $Script:AddrFmt.County_Codes_Name    }
+    $namesAll = if ($KeyName -ieq 'state') { $Script:AddrFmt.State_Codes_Name } else { $Script:AddrFmt.County_Codes_Name }
 
     if ($null -ne $reverseAll -and $reverseAll.ContainsKey($cc)) {
         $rev = $reverseAll[$cc]
@@ -1523,7 +1519,7 @@ function Add-Code {
             if (-not $Components.ContainsKey('state_code') -and $state -match '^washington,?\s*d\.?c\.?') {
                 $Components['state_code'] = 'DC'
                 $Components['state'] = 'District of Columbia'
-                $Components['city']  = 'Washington'
+                $Components['city'] = 'Washington'
             }
         }
     }
