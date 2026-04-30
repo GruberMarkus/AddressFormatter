@@ -33,53 +33,62 @@ Write-Host 'Running test cases'
 $TestCaseFilesCount = 0
 $TestCaseCount = 0
 $TestCaseErrorCount = 0
-$TestCaseErrors = @()
 
-foreach ($TestCaseFile in
-    @(
-        Get-ChildItem (Join-Path $PSScriptRoot '..\subModules\OpenCageData\address-formatting\testcases') -Include '*.yaml' -File -Recurse
-    )
-) {
+# Enumerate test files via .NET (no Get-ChildItem pipeline overhead)
+$testRoot = Join-Path $PSScriptRoot '..\subModules\OpenCageData\address-formatting\testcases'
+$testFiles = [System.IO.Directory]::GetFiles($testRoot, '*.yaml', [System.IO.SearchOption]::AllDirectories)
+
+# Parse every test file ONCE. The previous version parsed each file twice
+# (once to count, once to run); powershell-yaml is the dominant cost in this
+# script so doing it once roughly halves total parse time.
+# Pre-computing $isAbbrev per file also avoids a per-test-case Split-Path call.
+$utf8 = [System.Text.Encoding]::UTF8
+$parsedFiles = New-Object System.Collections.Generic.List[object]
+foreach ($f in $testFiles) {
     $TestCaseFilesCount++
-
-    $TestCaseCount += @(ConvertFrom-Yaml -Yaml (Get-Content $TestCaseFile.fullname -Raw -Encoding UTF8) -AllDocuments).Count
+    $text  = [System.IO.File]::ReadAllText($f, $utf8)
+    $cases = @(ConvertFrom-Yaml -Yaml $text -AllDocuments)
+    $TestCaseCount += $cases.Count
+    $isAbbrev = ([System.IO.Path]::GetFileName([System.IO.Path]::GetDirectoryName($f))) -ieq 'abbreviations'
+    $parsedFiles.Add([pscustomobject]@{
+        File     = $f
+        Cases    = $cases
+        IsAbbrev = $isAbbrev
+    })
 }
 
 Write-Host "  $TestCaseCount test cases from $TestCaseFilesCount files"
 
-foreach ($TestCaseFile in
-    @(
-        Get-ChildItem (Join-Path $PSScriptRoot '..\subModules\OpenCageData\address-formatting\testcases') -Include '*.yaml' -File -Recurse
-    )
-) {
-    foreach ($TestCase in @(ConvertFrom-Yaml -Yaml (Get-Content $TestCaseFile.fullname -Raw -Encoding UTF8) -AllDocuments)) {
-        if ((Split-Path (Split-Path $TestCaseFile.fullname) -Leaf) -ieq 'abbreviations') {
-            $result = (Format-PostalAddress -Components $TestCase.components -Abbreviate)
+# Pre-compile the two regexes used per test case (compiled once, reused thousands of times)
+$rxTrailingNL = [regex]::new('\r?\n$', [System.Text.RegularExpressions.RegexOptions]::Compiled)
+$rxAnyNL      = [regex]::new('\r?\n',  [System.Text.RegularExpressions.RegexOptions]::Compiled)
+$envNL        = [System.Environment]::NewLine
+
+# Collect errors in a List instead of growing an array via += (which reallocates each time)
+$errorsList = New-Object System.Collections.Generic.List[string]
+
+foreach ($entry in $parsedFiles) {
+    $file     = $entry.File
+    $isAbbrev = $entry.IsAbbrev
+    foreach ($TestCase in $entry.Cases) {
+        if ($isAbbrev) {
+            $result = Format-PostalAddress -Components $TestCase.components -Abbreviate
         } else {
-            $result = (Format-PostalAddress -Components $TestCase.components)
+            $result = Format-PostalAddress -Components $TestCase.components
         }
 
-        $TestCase.expected = $TestCase.expected -replace '\r?\n$', ''  # We do not add a trailing newline
-        $TestCase.expected = $TestCase.expected -replace '\r?\n', [System.Environment]::NewLine # Make sure we always use the environment specific newline
+        # Normalize expected: drop trailing newline, then convert any \r?\n to env newline.
+        $expected = $rxTrailingNL.Replace([string]$TestCase.expected, '')
+        $expected = $rxAnyNL.Replace($expected, $envNL)
 
-        if ($result -ne $TestCase.expected) {
+        if ($result -ne $expected) {
             $TestCaseErrorCount++
-
-            $TestCaseErrors += $TestCaseFile.fullname
-            $TestCaseErrors += "  $($TestCase.description)"
-
-            @(
-                '    Expected lines:'
-                $TestCase.expected -split '\r?\n' | ForEach-Object {
-                    "      '$($_)'"
-                }
-                '    Returned lines:'
-                $result -split '\r?\n' | ForEach-Object {
-                    "      '$($_)'"
-                }
-            ) | ForEach-Object {
-                $TestCaseErrors += $_
-            }
+            $errorsList.Add($file)
+            $errorsList.Add("  $($TestCase.description)")
+            $errorsList.Add('    Expected lines:')
+            foreach ($line in $rxAnyNL.Split($expected))     { $errorsList.Add("      '$line'") }
+            $errorsList.Add('    Returned lines:')
+            foreach ($line in $rxAnyNL.Split([string]$result)) { $errorsList.Add("      '$line'") }
         }
     }
 }
@@ -90,8 +99,8 @@ Write-Host 'Test results'
 Write-Host "  Passed: $($TestCaseCount - $TestCaseErrorCount)/$($TestCaseCount) ($((($TestCaseCount - $TestCaseErrorCount) * 100 / $TestCaseCount).ToString('F2')) %)"
 Write-Host "  Failed: $($TestCaseErrorCount)/$($TestCaseCount) ($(($TestCaseErrorCount * 100 / $TestCaseCount).ToString('F2')) %)"
 
-$TestCaseErrors | ForEach-Object {
-    Write-Host "    $($_)"
+foreach ($line in $errorsList) {
+    Write-Host "    $line"
 }
 
 
