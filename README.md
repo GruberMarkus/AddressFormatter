@@ -108,7 +108,7 @@ Note that the country name 'USA' has been automatically corrected to 'United Sta
 ## Update address templates and test cases
 Address templates and test cases are stored in the folder '`subModules\OpenCageData\address-formatting`'. This folder is a git submodule, which is basically a clone of the repository '`https://github.com/OpenCageData/address-formatting`'.
 
-To update the templates and test cases, run '`git submodule update`'.
+To update the templates and test cases, run '`git submodule update --init --recursive`'.
 
 ## Run tests
 Run `.\tests\tests.ps1` to run the tests. Only errors and a summary will be logged.
