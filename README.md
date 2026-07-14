@@ -122,13 +122,29 @@ Address templates and test cases are stored in the folder `subModules\OpenCageDa
 To update the templates and test cases, run:
 
 ```powershell
-while (!(Test-Path '.gitmodules') -and $pwd.Path -ne $pwd.Root.Path) { Set-Location .. }
+do {
+    $root = git rev-parse --show-superproject-working-tree 2>$null
 
-if (Test-Path '.gitmodules') {
-   git submodule sync --recursive
-   git submodule update --init --recursive --remote --merge
-} else {
-   Write-Warning 'Could not find a parent directory containing .gitmodules!'
+    if ($root) {
+        Set-Location $root
+    }
+} while ($root)
+
+$root = git rev-parse --show-toplevel 2>$null
+
+if (-not $root) {
+    Write-Warning 'The current directory is not inside a Git repository.'
+    return
+}
+
+Set-Location $root
+
+if (Test-Path -LiteralPath '.gitmodules') {
+    git submodule sync --recursive
+    git submodule update --init --recursive --remote --merge
+}
+else {
+    Write-Warning 'The top-level repository does not contain a .gitmodules file.'
 }
 ```
 
